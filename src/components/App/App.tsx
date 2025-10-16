@@ -10,10 +10,15 @@ import Loader from '../Loader/Loader';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
 import MovieModal from '../MovieModal/MovieModal';
 import fetchMovies from '../../services/movieService';
-import { useQuery } from '@tanstack/react-query';
+
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import ReactPaginate from 'react-paginate';
+import paginationStyles from '../Pagination/Pagination.module.css'
+
 
 function App() {
   const [title, setTitle] = useState<string>('');
+  const [page, setPage] = useState(1);
   // const [movies, setMovies] = useState<Movie[]>([]);
   // const [loading, setLoading] = useState(false);
   // const [error, setError] = useState(false);
@@ -38,16 +43,36 @@ function App() {
   // }
 
   const { data, /*error,*/ isLoading, isError, isSuccess } = useQuery({
-    queryKey: ['movies', title],
-    queryFn: () => fetchMovies(title),
-    enabled: title.trim().length > 0
+    queryKey: ['movies', title, page],
+    queryFn: () => fetchMovies(title, page),
+    enabled: title.trim().length > 0,
+    placeholderData: keepPreviousData,
   });
 
+  const totalPages = data?.total_pages ?? 0;
+
+  const handleSearch = async (newTitle: string) => {
+    setTitle(newTitle);
+    setPage(1);
+  }
 
   return (
     <div className={styles.app}>
       <Toaster />
-      <SearchBar onSubmit={setTitle}></SearchBar>
+      <SearchBar onSubmit={handleSearch}></SearchBar>
+      {isSuccess && totalPages > 1 && (
+        <ReactPaginate
+          pageCount={totalPages}
+          pageRangeDisplayed={5}
+          marginPagesDisplayed={1}
+          onPageChange={({ selected }) => setPage(selected + 1)}
+          forcePage={page - 1}
+          containerClassName={paginationStyles.pagination}
+          activeClassName={paginationStyles.active}
+          nextLabel="→"
+          previousLabel="←"
+        />
+      )}
       {isLoading && <Loader />}
       {isError && <ErrorMessage />}
       {isSuccess && <MovieGrid movies={data.results} onSelect={setSelectedMovie}></MovieGrid>}
