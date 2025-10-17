@@ -12,7 +12,7 @@ interface FetchMoviesResponse {
 export default async function fetchMovies(title: string, page: number): Promise<FetchMoviesResponse> {
     const API_URL = 'https://api.themoviedb.org/3/';
     const token = import.meta.env.VITE_TMDB_TOKEN;
-    const response = await axios.get(`${API_URL}/search/movie`, {
+    const response = await axios.get<FetchMoviesResponse>(`${API_URL}/search/movie`, {
         params: {
             query: title,
             page

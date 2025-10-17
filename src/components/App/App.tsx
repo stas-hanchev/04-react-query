@@ -2,8 +2,8 @@ import styles from './App.module.css'
 
 import type { Movie } from '../../types/movie';
 
-import { useState } from 'react'
-import { Toaster, /*toast*/ } from "react-hot-toast";
+import { useEffect, useState } from 'react'
+import { Toaster, toast } from "react-hot-toast";
 import SearchBar from '../SearchBar/SearchBar';
 import MovieGrid from '../MovieGrid/MovieGrid';
 import Loader from '../Loader/Loader';
@@ -19,30 +19,9 @@ import paginationStyles from '../Pagination/Pagination.module.css'
 function App() {
   const [title, setTitle] = useState<string>('');
   const [page, setPage] = useState(1);
-  // const [movies, setMovies] = useState<Movie[]>([]);
-  // const [loading, setLoading] = useState(false);
-  // const [error, setError] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  // const handleSearch = async (title: string) => {
-  //   // setLoading(true);
-  //   // setError(false);
-  //   setMovies([]);
-  //   try {
-  //     const data = await fetchMovies(title);
-  //     if (data.results.length === 0) {
-  //       toast.error("No movies found for your request.");
-  //     }
-  //     setMovies(data.results);
-  //   } catch {
-  //     // setError(true);
-  //     toast.error("Error fetching movies.");
-  //   } finally {
-  //     // setLoading(false);
-  //   }
-  // }
-
-  const { data, /*error,*/ isLoading, isError, isSuccess } = useQuery({
+  const { data, isLoading, isError, isSuccess } = useQuery({
     queryKey: ['movies', title, page],
     queryFn: () => fetchMovies(title, page),
     enabled: title.trim().length > 0,
@@ -55,6 +34,12 @@ function App() {
     setTitle(newTitle);
     setPage(1);
   }
+
+  useEffect(() => {
+    if (isSuccess === true && data.results.length ===0) {
+      toast.error("No movies found for your request.");
+    }
+  }, [data?.results.length, isSuccess]);
 
   return (
     <div className={styles.app}>
